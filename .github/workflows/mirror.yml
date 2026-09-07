@@ -1,0 +1,55 @@
+# Keeps the mirror current without anyone running anything.
+#
+# Every Deployr launch produces artwork on IPFS, which is durable but far too
+# slow to render a page from: a CID nobody has requested is a 504 after 28
+# seconds on ipfs.io, and Pinata answers in 3-7 seconds every time because it
+# does not cache. So the images are copied here and served over a CDN.
+#
+# The job needs no secrets. It reads the public Deployr API for tokens and their
+# CIDs, fetches whatever is missing, and commits with the token GitHub provides.
+name: Mirror new token images
+
+on:
+  schedule:
+    # Twice a day. Launches are not frequent enough to justify more, and Pinata
+    # rate-limits hard enough that a long gap is an advantage.
+    - cron: "0 3,15 * * *"
+  workflow_dispatch:
+
+concurrency:
+  # Two runs would fetch the same images and race on the push.
+  group: mirror
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install sharp
+        run: npm install --no-save --no-audit --no-fund sharp@0.33.5
+
+      - name: Fetch missing images
+        env:
+          DEPLOYR_API: https://deployr-api-production.up.railway.app
+        run: node .github/scripts/mirror.mjs
+
+      - name: Commit anything new
+        run: |
+          if git diff --quiet && git diff --cached --quiet; then
+            echo "nothing new to mirror"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Mirror new token images"
+          git push

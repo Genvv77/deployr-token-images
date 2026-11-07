@@ -1,0 +1,10 @@
+{
+  "name": "Deployr Float Test",
+  "symbol": "DFLOAT",
+  "description": "Deployed by Deployr | Test launch of Deployr's Float integration.",
+  "image": "https://cdn.jsdelivr.net/gh/Genvv77/deployr-token-images@0863c7ac058b09079600accfbc8490eca5953243/logos/dfloat-ec5107056c10e5f09051.webp",
+  "showName": true,
+  "createdOn": "https://deployr.money",
+  "twitter": "https://x.com/HeyDeployr",
+  "website": "https://deployr.money"
+}

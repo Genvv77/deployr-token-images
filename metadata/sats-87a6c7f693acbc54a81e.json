@@ -1,0 +1,8 @@
+{
+  "name": "sats",
+  "symbol": "SATS",
+  "description": "Deployed by Deployr | Tiny digital pennies that power Bitcoin’s global ledger.",
+  "image": "https://cdn.jsdelivr.net/gh/Genvv77/deployr-token-images@90520efbbd4ba672c013049754b561882dd2e7b4/logos/sats-e3edc9f210246a864c1f.webp",
+  "showName": true,
+  "createdOn": "https://deployr.money"
+}

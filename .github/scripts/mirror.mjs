@@ -42,16 +42,41 @@ async function allTokens() {
     return out;
 }
 
+/**
+ * Gateways to try for a CID, fastest first. Measured Nov 2026: filebase holds
+ * these in ~0.4s, 4everland in 1-3s, Pinata in 3-7s. ipfs.io, dweb.link and
+ * nftstorage.link now answer 403 to automated requests, which is why tokens
+ * whose only source was an ipfs.io URL were never mirrored.
+ */
+const GATEWAYS = [
+    "https://ipfs.filebase.io/ipfs/",
+    "https://4everland.io/ipfs/",
+    "https://gateway.pinata.cloud/ipfs/",
+];
+const CID_RE = /(?:ipfs:\/\/|\/ipfs\/)(bafy[a-z0-9]{20,}|bafk[a-z0-9]{20,}|Qm[1-9A-HJ-NP-Za-km-z]{44})/i;
+
+/** The CID a token's image lives at, from imageCid or any IPFS-shaped URL. */
+function cidOf(token) {
+    if (token.imageCid) return token.imageCid;
+    for (const url of [token.imageUrl, token.imageUrlFallback]) {
+        const match = url && CID_RE.exec(url);
+        if (match) return match[1];
+    }
+    return null;
+}
+
 async function fetchImage(token) {
     const urls = [];
-    if (token.imageCid) urls.push(`https://gateway.pinata.cloud/ipfs/${token.imageCid}`);
+    const cid = cidOf(token);
+    if (cid) for (const gw of GATEWAYS) urls.push(`${gw}${cid}`);
     for (const url of [token.imageUrlFallback, token.imageUrl]) {
-        if (url && !url.includes("jsdelivr") && !urls.includes(url)) urls.push(url);
+        if (url && !url.includes("jsdelivr") && !CID_RE.test(url) && !urls.includes(url)) urls.push(url);
     }
     for (const url of urls) {
         for (let attempt = 0; attempt <= RETRIES; attempt += 1) {
             try {
-                const res = await fetch(url);
+                // A gateway that hangs must not stall the whole run.
+                const res = await fetch(url, { signal: AbortSignal.timeout(20000) });
                 if (res.ok) {
                     const buf = Buffer.from(await res.arrayBuffer());
                     if (buf.length > 0) return buf;

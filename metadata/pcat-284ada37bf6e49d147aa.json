@@ -1,0 +1,8 @@
+{
+  "name": "Potato Cat",
+  "symbol": "PCAT",
+  "description": "Deployed by Deployr | A whiskered, spud-loving feline that prowls through fields of golden potatoes.",
+  "image": "https://cdn.jsdelivr.net/gh/Genvv77/deployr-token-images@9b7f6d46ede54cb0a33cada44cb4a8b4c1e42c41/logos/pcat-ea6890847513ea96fff0.webp",
+  "showName": true,
+  "createdOn": "https://deployr.money"
+}
